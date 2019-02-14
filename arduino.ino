@@ -7,45 +7,45 @@
 */
 
 // Start Pin Layout
-int smokeA0 = A1;
+int MQAnalogPin0 = 1;
 int solenoidPin = 10;
 int LEDpin = 11;
 int sensorThres = 100;
-int flame_sensor = 4;
-int fsrAnalogPin = 3;
-int flame_detected;
+int IRSensor = 4;
+int fsrA = 3;
+int IRDetected;
 int LEDbrightness;
 int fsrReading;
 // End Pin Layout
 
 void setup() {
 // Serial BPS debugging information via the Serial monitor
-  Serial.begin(9600);
+  Serial.begin(19200);
   pinMode(solenoidPin, OUTPUT);
-  pinMode(smokeA0, INPUT);
-  pinMode(flame_sensor, INPUT) ;
+  pinMode(MQAnalogPin0, INPUT);
+  pinMode(IRSensor, INPUT) ;
   pinMode(LEDpin, OUTPUT);
 }
 
 void loop() {
-  int analogSensor = analogRead(smokeA0);
-  int flame_detected = digitalRead(flame_sensor);
+  int analogSensor = analogRead(MQAnalogPin0);
+  int IRDetected = digitalRead(IRSensor);
+  Serial.println(analogSensor);
 /*
  Connect one end of FSR to 5V, the other end to Analog 3.
  Then connect one end of a 10K resistor from Analog 3 to ground
  Connect LED from pin 11 through a resistor to ground 
- * FRS Reading = (0-1023)
+ * FSR Reading = (0-1023)
  * analogWrite = (0-255) 
 */
-  int fsrReading = analogRead(fsrAnalogPin);
-  Serial.print("Default FRS reading = ");
+  int fsrReading = analogRead(fsrA);
+  Serial.print("Default FSR reading = ");
   Serial.println(fsrReading);
-  int LEDbrightness = map(fsrReading, 0, 1015, 0, 240);
+  int LEDbrightness = map(fsrReading, 0, 1023, 0, 250);
   analogWrite(LEDpin, LEDbrightness);  
 
 // Online Ports
   Serial.print("Online Ports: comA0, comA1, comA3, comD4, comD10, comD11, ");
-  Serial.println(analogSensor);
 
   if (analogSensor > sensorThres)
   {
@@ -57,13 +57,15 @@ void loop() {
   {
   Serial.print("Smoke Detected, ");
   digitalWrite(solenoidPin, HIGH);
- /* delay(100); //Wait 1 MS
+ /*
+  delay(100); //Wait 1 MS
  */ }
 
- if (flame_detected == 1)
+ if (IRDetected == 1)
    {
   digitalWrite(solenoidPin, HIGH);
- /* delay(0); //Wait 0 MS(debbuging)
+ /* 
+  delay(0); //Wait 0 MS(debbuging)
  */
   }
   else
