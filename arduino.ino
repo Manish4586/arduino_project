@@ -24,7 +24,7 @@ void setup() {
   pinMode(solenoidPin, OUTPUT);
   pinMode(smokeA0, INPUT);
   pinMode(flame_sensor, INPUT) ;
-    pinMode(LEDpin, OUTPUT);
+  pinMode(LEDpin, OUTPUT);
 }
 
 void loop() {
