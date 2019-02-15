@@ -7,71 +7,74 @@
 */
 
 // Start Pin Layout
-int MQAnalogPin0 = 1;
+int MQPin0 = 1;
 int solenoidPin = 10;
-int LEDpin = 11;
-int sensorThres = 100;
-int IRSensor = 4;
-int fsrA = 3;
-int IRDetected;
-int LEDbrightness;
-int fsrReading;
+int forceOutPin = 11;
+int sensorThres = 900;
+int LDRSensorPin3 = 4;
+int forcePin = 2;
+int LDRDetected;
+int forceReading;
 // End Pin Layout
 
 void setup() {
 // Serial BPS debugging information via the Serial monitor
   Serial.begin(19200);
   pinMode(solenoidPin, OUTPUT);
-  pinMode(MQAnalogPin0, INPUT);
-  pinMode(IRSensor, INPUT) ;
-  pinMode(LEDpin, OUTPUT);
+  pinMode(forceOutPin, OUTPUT);
+  pinMode(MQPin0, INPUT);
+  pinMode(LDRSensorPin3, INPUT);
+  pinMode(forcePin, INPUT);
 }
 
 void loop() {
-  int analogSensor = analogRead(MQAnalogPin0);
-  int IRDetected = digitalRead(IRSensor);
+  int analogSensor = analogRead(MQPin0);
+  LDRDetected = digitalRead(LDRSensorPin3);
+  Serial.print("Default LDR reading = ");
   Serial.println(analogSensor);
-/*
- Connect one end of FSR to 5V, the other end to Analog 3.
- Then connect one end of a 10K resistor from Analog 3 to ground
- Connect LED from pin 11 through a resistor to ground 
- * FSR Reading = (0-1023)
- * analogWrite = (0-255) 
-*/
-  int fsrReading = analogRead(fsrA);
-  Serial.print("Default FSR reading = ");
-  Serial.println(fsrReading);
-  int LEDbrightness = map(fsrReading, 0, 1023, 0, 250);
-  analogWrite(LEDpin, LEDbrightness);  
+  forceReading = analogRead(forcePin);
+  Serial.print("Default Pressure reading = ");
+  Serial.println(forceReading);  
 
 // Online Ports
-  Serial.print("Online Ports: comA0, comA1, comA3, comD4, comD10, comD11, ");
+//  Serial.print("Online Ports: comA0, comA1, comA3, comD4, comD10, comD11, ");
 
   if (analogSensor > sensorThres)
-  {
-  Serial.print("No Smoke Detected, ");    
+  {  
   digitalWrite(solenoidPin, LOW);
-  delay(0); //Wait 0 MS(debbuging)
+  delay(analogSensor); //Wait 0 MS(debbuging)
   }
   else
   {
   Serial.print("Smoke Detected, ");
   digitalWrite(solenoidPin, HIGH);
- /*
-  delay(100); //Wait 1 MS
- */ }
+  delay(sensorThres); //Wait 1 MS
+ }
 
- if (IRDetected == 1)
+  if (LDRDetected < 100)
    {
-  digitalWrite(solenoidPin, HIGH);
+  digitalWrite(solenoidPin, LOW);
  /* 
   delay(0); //Wait 0 MS(debbuging)
  */
   }
   else
+  if (LDRDetected > 100)
   { 
-  digitalWrite(solenoidPin, LOW);
-  delay(0); //Wait 0 MS
+  digitalWrite(solenoidPin, HIGH);
+  delay(LDRDetected);
+  delay(0);//Wait 0 MS
   }
-  delay(100);
+
+ if (forceReading == 0)
+   {
+  digitalWrite(forceOutPin, HIGH);
+  delay(0); //Wait 0 MS(debbuging)
+  }
+  else
+  if (forceReading == 1023)
+  { 
+  digitalWrite(forceOutPin, LOW);
+  delay(0);
+  }
 }
