@@ -9,9 +9,8 @@
 // Start Pin Layout
 int MQPin0 = 1;
 int solenoidPin = 10;
-int forceOutPin = 11;
 int sensorThres = 900;
-int LDRSensorPin3 = 4;
+int LDRSensorPin = 3;
 int forcePin = 2;
 int LDRDetected;
 int forceReading;
@@ -21,15 +20,14 @@ void setup() {
 // Serial BPS debugging information via the Serial monitor
   Serial.begin(19200);
   pinMode(solenoidPin, OUTPUT);
-  pinMode(forceOutPin, OUTPUT);
   pinMode(MQPin0, INPUT);
-  pinMode(LDRSensorPin3, INPUT);
+  pinMode(LDRSensorPin, INPUT);
   pinMode(forcePin, INPUT);
 }
 
 void loop() {
   int analogSensor = analogRead(MQPin0);
-  LDRDetected = digitalRead(LDRSensorPin3);
+  LDRDetected = digitalRead(LDRSensorPin);
   Serial.print("Default LDR reading = ");
   Serial.println(analogSensor);
   forceReading = analogRead(forcePin);
@@ -68,13 +66,13 @@ void loop() {
 
  if (forceReading == 0)
    {
-  digitalWrite(forceOutPin, HIGH);
+  digitalWrite(solenoidPin, HIGH);
   delay(0); //Wait 0 MS(debbuging)
   }
   else
   if (forceReading == 1023)
   { 
-  digitalWrite(forceOutPin, LOW);
+  digitalWrite(solenoidPin, LOW);
   delay(0);
   }
 }
