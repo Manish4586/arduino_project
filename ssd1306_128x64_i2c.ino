@@ -19,8 +19,13 @@
 #define SCREEN_WIDTH 128
 #define SCREEN_HEIGHT 64
 
-#define OLED_RESET     4 
+// #define OLED_RESET     4 
+
+#if defined($(OLED_RESET),4)
 SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+#else
+SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
+#endif
 
 #define NUMFLAKES     10
 
