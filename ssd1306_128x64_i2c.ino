@@ -21,7 +21,9 @@
 
 // #define OLED_RESET     4 
 
-#if defined($(OLED_RESET),4)
+#define PANEL         0x3D
+
+#if defined(OLED_RESET)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #else
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire);
@@ -50,10 +52,14 @@ static const unsigned char PROGMEM logo_bmp[] =
   B00000000, B00110000 };
 
 void setup() {
-
     Serial.begin(19200);
-
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3D)) {
+    
+#if defined(PANEL)
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3D))
+#else
+  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C))
+#endif
+{
     Serial.println(F("SSD1306 allocation failed"));
     for(;;);
   }
