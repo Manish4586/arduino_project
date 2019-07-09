@@ -19,13 +19,13 @@ void setup() {
 void loop() {
   int ldrStatus = analogRead(ldrPin);
   if (ldrStatus <= 500) {
-  digitalWrite(ledPin, LOW);
+  digitalWrite(ledPin, HIGH);
   Serial.println(ldrStatus);
+  Serial.print("LDR Status = ");
 }
 else
 {
-digitalWrite(ledPin, HIGH);
+digitalWrite(ledPin, LOW);
 Serial.println(ldrStatus);
     }
-
 }

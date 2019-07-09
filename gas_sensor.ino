@@ -8,12 +8,11 @@
 
 // Start Pin Layout
 int MQPin0 = 1;
-int solenoidPin = 10;
+int solenoidPin = 7;
 int sensorThres = 900;
 int LDRSensorPin = 3;
 int forcePin = 2;
-#define out 9
-#define out1 8
+#define out 8
 int LDRDetected;
 int forceReading;
 // End Pin Layout
@@ -24,7 +23,6 @@ void setup() {
   pinMode(solenoidPin, OUTPUT);
   pinMode(MQPin0, INPUT);
   pinMode(out, OUTPUT);
-  pinMode(out1, OUTPUT);
   pinMode(LDRSensorPin, INPUT);
   pinMode(forcePin, INPUT);
 }
