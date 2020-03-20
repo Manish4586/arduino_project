@@ -3,28 +3,28 @@
 *  Arduino Projects By Manish4586 & Karan
 *  Source Code : https://GitHub.com/Manish4586
 *  Author : Manish4586 <manish.n.manish45@gmail.com>
-*  Status : Debugging
+*  Status : Debug
 */
 
 // Start Pin Layout
+//#include <LiquidCrystal_I2C.h>
 #include <LiquidCrystal.h>
 #include <Wire.h> 
-//#include <LiquidCrystal_I2C.h>
 #include <Keypad.h>
-int MQPin=A0;
-int solenoidpin=7;
+int MQPin = 0;
+int solenoidpin = 7;
+int panel = 10; //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
 int ldrsensor;
 int orcepin;
 int out;
-int thresh=700;
-int force=2;
+int thresh = 700;
+int force = 2;
 int password;
 //int irSensor;
 //int flameSensor;
 int ldrdetected;
 int forceresding;
 int solenoidthresh;
-int signalPin = 11;
 //LiquidCrystal_I2C lcd(0x21, 16, 2); 
 LiquidCrystal lcd(12,11,5,4,9,6);
 // End Pin Layout
@@ -48,25 +48,25 @@ char hexaKeys[ROWS][COLS] = {
 };
 
 byte rowPins[ROWS] = {9, 8, 7, 6};
-byte colPins[COLS] = {A4, A5, A6, A7};
+byte colPins[COLS] = {A2, A3, A4, A5};
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
 
 void setup() {
+  Serial.begin(19200);
+ // pinMode(irSensor,INPUT);
+ // pinMode(flameSensor,INPUT);
   pinMode(relay,OUTPUT);
   pinMode(force,INPUT);
   pinMode(gasSensor,INPUT);
- // pinMode(irSensor,INPUT);
- // pinMode(flameSensor,INPUT);
-  Serial.begin(9600);
+  pinMode(panel,OUTPUT); //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
+  analogWrite(panel,115); //No Longer Using Potentiometer To Determine Panel Backlight Intensity Instead Using Digital Value To Set Electrical Changes Are Done To Support It So Check Circuit Diagram Before Changing Default Value By Manish4586 <manish.n.manish45@gmail.com>
+ // Begin LCD Properties
   lcd.begin(16,2);
-  lcd.setCursor(0,0);
-  lcd.print("meghajit ");
+ // End LCD Properties
 }
 
 void loop() {
-  // checks the password if its true or false
-  
  /* if (pass() == false ){
     Serial.println("password in incorrect");
     lcd.setCursor(0,0);
@@ -74,22 +74,22 @@ void loop() {
     lcd.print("password is incorrect");
   }else{*/
   if(pass() == true){
-    digitalWrite(relay,HIGH);   //selenoid is on
+    digitalWrite(relay,HIGH);
     while(digitalRead(relay)==HIGH){  //we check if the the solenoid is on (LOOP 1)
         lcd.setCursor(0,1);
         lcd.print("        ");
-        int mqpin = analogRead(mqpin);
+        int MQPin = analogRead(MQPin);
         lcd.setCursor(0,1);
-        lcd.print(mqpin);
+        lcd.print(MQPin);
       if (digitalRead(force)==HIGH){  //we check if force sensor is on i.e something is kept intop
         //we want the relay to be high if the force sensor is on
-         if(mqpin > thresh){   //check whether for gas sensor high means gas or vice versa
+         if(MQPin > thresh){   //check whether for gas sensor high means gas or vice versa
          digitalWrite(relay,LOW);//if we find gase sensor on break LOOP 1
           Serial.println("gas is on,selenoid is switch off ");
           lcd.setCursor(0,0);
           lcd.print("gas is high solenoid is offed");
           lcd.setCursor(0,1);
-          lcd.print(mqpin);
+          lcd.print(MQPin);
         }
       }
       
@@ -107,7 +107,7 @@ void loop() {
             //digitalWrite(relay,HIGH);
             counter = counter + 1;
         }
-        if(mqpin>thresh){    //check whether for gas sensor high means gas or vice versa
+        if(MQPin>thresh){    //check whether for gas sensor high means gas or vice versa
           digitalWrite(relay,LOW);    //if we find gas sensor on make relay off , breaks the LOOP 1
           Serial.println("gas is on,selenoid off "); 
           lcd.setCursor(0,0);
@@ -115,7 +115,7 @@ void loop() {
         lcd.setCursor(0,1);
         lcd.print("        ");
           lcd.setCursor(0,1);
-          lcd.print(mqpin);         
+          lcd.print(MQPin);         
         }
       }
     }
@@ -167,5 +167,4 @@ void clearData(){
   while(data_count !=0){
     Data[data_count--] = 0; 
   }
-  return;
 }
