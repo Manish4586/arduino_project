@@ -12,7 +12,7 @@
 #include <Wire.h> 
 #include <Keypad.h>
 int MQPin = 0;
-int solenoidpin = 7;
+int solenoid = A7;
 int panel = 10; //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
 int ldrsensor;
 int orcepin;
@@ -32,7 +32,7 @@ LiquidCrystal lcd(12,11,5,4,9,6);
 #define Password_Length 4
 
 char Data[Password_Length]; 
-char Master[Password_Length] = "1234"; 
+char Master[Password_Length] = "123"; 
 byte data_count = 0, master_count = 0;
 bool Pass_is_good;
 char customKey;
@@ -47,7 +47,7 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {9, 8, 7, 6};
+byte rowPins[ROWS] = {8, 7, 3, 2};
 byte colPins[COLS] = {A2, A3, A4, A5};
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
@@ -56,9 +56,9 @@ void setup() {
   Serial.begin(19200);
  // pinMode(irSensor,INPUT);
  // pinMode(flameSensor,INPUT);
-  pinMode(relay,OUTPUT);
+  pinMode(solenoid,OUTPUT);
   pinMode(force,INPUT);
-  pinMode(gasSensor,INPUT);
+  pinMode(MQPin,INPUT);
   pinMode(panel,OUTPUT); //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
   analogWrite(panel,115); //No Longer Using Potentiometer To Determine Panel Backlight Intensity Instead Using Digital Value To Set Electrical Changes Are Done To Support It So Check Circuit Diagram Before Changing Default Value By Manish4586 <manish.n.manish45@gmail.com>
  // Begin LCD Properties
@@ -74,17 +74,17 @@ void loop() {
     lcd.print("password is incorrect");
   }else{*/
   if(pass() == true){
-    digitalWrite(relay,HIGH);
-    while(digitalRead(relay)==HIGH){  //we check if the the solenoid is on (LOOP 1)
+    digitalWrite(solenoid,HIGH);
+    while(digitalRead(solenoid)==HIGH){  //we check if the the solenoid is on (LOOP 1)
         lcd.setCursor(0,1);
         lcd.print("        ");
         int MQPin = analogRead(MQPin);
         lcd.setCursor(0,1);
         lcd.print(MQPin);
       if (digitalRead(force)==HIGH){  //we check if force sensor is on i.e something is kept intop
-        //we want the relay to be high if the force sensor is on
+        //we want the solenoid to be high if the force sensor is on
          if(MQPin > thresh){   //check whether for gas sensor high means gas or vice versa
-         digitalWrite(relay,LOW);//if we find gase sensor on break LOOP 1
+         digitalWrite(solenoid,LOW);//if we find gase sensor on break LOOP 1
           Serial.println("gas is on,selenoid is switch off ");
           lcd.setCursor(0,0);
           lcd.print("gas is high solenoid is offed");
@@ -100,15 +100,15 @@ void loop() {
             delay(10000);
             Serial.println(counter);
             if(counter==5){   //if it becomes 5sec then off the sensor
-              digitalWrite(relay,LOW);// breaks the LOOP 1
+              digitalWrite(solenoid,LOW);// breaks the LOOP 1
               Serial.println("solenoid is off");
               break;
             }
-            //digitalWrite(relay,HIGH);
+            //digitalWrite(solenoid,HIGH);
             counter = counter + 1;
         }
         if(MQPin>thresh){    //check whether for gas sensor high means gas or vice versa
-          digitalWrite(relay,LOW);    //if we find gas sensor on make relay off , breaks the LOOP 1
+          digitalWrite(solenoid,LOW);    //if we find gas sensor on make solenoid off , breaks the LOOP 1
           Serial.println("gas is on,selenoid off "); 
           lcd.setCursor(0,0);
           lcd.print("gas is high solenoid is offed");
@@ -167,4 +167,5 @@ void clearData(){
   while(data_count !=0){
     Data[data_count--] = 0; 
   }
+  return;
 }
