@@ -1,171 +1,128 @@
 /* 
-* Copyright (c) 2019, 2020 Open Source Arduino Projects
-*  Arduino Projects By Manish4586 & Karan
-*  Source Code : https://GitHub.com/Manish4586
-*  Author : Manish4586 <manish.n.manish45@gmail.com>
-*  Status : Debug
+ *  Arduino Projects By Manish4586
+ *  Source Code : https://GitHub.com/Manish4586
+ *  Author : Manish4586 <manish.n.manish45@gmail.com>
+ *  Status : Debugging
 */
-
-// Start Pin Layout
-//#include <LiquidCrystal_I2C.h>
+/* LCD RS pin to digital pin 12
+LCD Enable pin to digital pin 11
+LCD Backlight pin to digital 10
+LCD D4 pin to digital pin 5
+LCD D5 pin to digital pin 4
+LCD D6 pin to digital pin 9
+LCD D7 pin to digital pin 6 */
 #include <LiquidCrystal.h>
-#include <Wire.h> 
-#include <Keypad.h>
+byte heart[8] = 
+
+              {
+
+                0b00000,
+
+                0b01010,
+
+                0b11111,
+
+                0b11111,
+
+                0b11111,
+
+                0b01110,
+
+                0b00100,
+
+                0b00000
+
+              };
+// Start Pin Layout
 int MQPin = 0;
-int solenoid = A7;
+int solenoidPin = 7;
+int sensorThres = 900;
+int LDRSensorPin = 3;
+int forcePin = 2;
 int panel = 10; //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
-int ldrsensor;
-int orcepin;
-int out;
-int thresh = 700;
-int force = 2;
-int password;
-//int irSensor;
-//int flameSensor;
-int ldrdetected;
-int forceresding;
-int solenoidthresh;
-//LiquidCrystal_I2C lcd(0x21, 16, 2); 
-LiquidCrystal lcd(12,11,5,4,9,6);
+//int out = 8;
+LiquidCrystal lcd(12, 11, 5, 4, 9, 6);
+int LDRDetected;
+int forceReading;
+int solenoidThres;
 // End Pin Layout
 
-#define Password_Length 4
-
-char Data[Password_Length]; 
-char Master[Password_Length] = "123"; 
-byte data_count = 0, master_count = 0;
-bool Pass_is_good;
-char customKey;
-
-const byte ROWS = 4;
-const byte COLS = 4;
-
-char hexaKeys[ROWS][COLS] = {
-  {'1', '2', '3', 'A'},
-  {'4', '5', '6', 'B'},
-  {'7', '8', '9', 'C'},
-  {'*', '0', '#', 'D'}
-};
-
-byte rowPins[ROWS] = {8, 7, 3, 2};
-byte colPins[COLS] = {A2, A3, A4, A5};
-
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS);
-
-void setup() {
+void setup(void) {
+// Serial BPS debugging information via the Serial monitor
   Serial.begin(19200);
- // pinMode(irSensor,INPUT);
- // pinMode(flameSensor,INPUT);
-  pinMode(solenoid,OUTPUT);
-  pinMode(force,INPUT);
-  pinMode(MQPin,INPUT);
-  pinMode(panel,OUTPUT); //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
-  analogWrite(panel,115); //No Longer Using Potentiometer To Determine Panel Backlight Intensity Instead Using Digital Value To Set Electrical Changes Are Done To Support It So Check Circuit Diagram Before Changing Default Value By Manish4586 <manish.n.manish45@gmail.com>
+  pinMode(solenoidPin, OUTPUT);
+  pinMode(MQPin, INPUT);
+//  pinMode(out, OUTPUT);
+  pinMode(LDRSensorPin, INPUT);
+  pinMode(forcePin, INPUT);
+  pinMode(panel, OUTPUT); //Panel Properties By Manish4586 <manish.n.manish45@gmail.com>
+  analogWrite(panel, 190); //No Longer Using Potentiometer To Determine Panel Backlight Intensity Instead Using Digital Value To Set Electrical Changes Are Done To Support It So Check Circuit Diagram Before Changing Default Value By Manish4586 <manish.n.manish45@gmail.com>
  // Begin LCD Properties
+  lcd.createChar(1, heart);
   lcd.begin(16,2);
+  lcd.print("Initialising....");
+  delay(1000);
+  lcd.clear();
+  lcd.print("Gas Project");
+  lcd.setCursor(0,1);
+  lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);
+  delay(2000);
+  lcd.clear();
  // End LCD Properties
 }
 
-void loop() {
- /* if (pass() == false ){
-    Serial.println("password in incorrect");
-    lcd.setCursor(0,0);
-      lcd.print("                     "); 
-    lcd.print("password is incorrect");
-  }else{*/
-  if(pass() == true){
-    digitalWrite(solenoid,HIGH);
-    while(digitalRead(solenoid)==HIGH){  //we check if the the solenoid is on (LOOP 1)
-        lcd.setCursor(0,1);
-        lcd.print("        ");
-        int MQPin = analogRead(MQPin);
-        lcd.setCursor(0,1);
-        lcd.print(MQPin);
-      if (digitalRead(force)==HIGH){  //we check if force sensor is on i.e something is kept intop
-        //we want the solenoid to be high if the force sensor is on
-         if(MQPin > thresh){   //check whether for gas sensor high means gas or vice versa
-         digitalWrite(solenoid,LOW);//if we find gase sensor on break LOOP 1
-          Serial.println("gas is on,selenoid is switch off ");
-          lcd.setCursor(0,0);
-          lcd.print("gas is high solenoid is offed");
-          lcd.setCursor(0,1);
-          lcd.print(MQPin);
-        }
-      }
-      
-      else{
-        int counter = 1;
-        while(digitalRead(force)==LOW && counter<= 5){    //check for 5sec i.e. each loop is 1sec if the sensor is high then break the loop
-          Serial.println("lift off");
-            delay(10000);
-            Serial.println(counter);
-            if(counter==5){   //if it becomes 5sec then off the sensor
-              digitalWrite(solenoid,LOW);// breaks the LOOP 1
-              Serial.println("solenoid is off");
-              break;
-            }
-            //digitalWrite(solenoid,HIGH);
-            counter = counter + 1;
-        }
-        if(MQPin>thresh){    //check whether for gas sensor high means gas or vice versa
-          digitalWrite(solenoid,LOW);    //if we find gas sensor on make solenoid off , breaks the LOOP 1
-          Serial.println("gas is on,selenoid off "); 
-          lcd.setCursor(0,0);
-          lcd.print("gas is high solenoid is offed");
-        lcd.setCursor(0,1);
-        lcd.print("        ");
-          lcd.setCursor(0,1);
-          lcd.print(MQPin);         
-        }
-      }
-    }
-  }
-}
-bool pass(){
+void loop(void) {
+/*  lcd.setCursor(0, 1);
+  lcd.print(millis() / 9000); */
+  int analogSensor = analogRead(MQPin);
+  Serial.print("Default LDR reading = ");
+  LDRDetected = digitalRead(LDRSensorPin);
+  Serial.println(LDRDetected);
+  lcd.print("        ");
   lcd.setCursor(0,0);
-  //lcd.print("                  ");
-  lcd.print("Enter Password:");
- Serial.println("enter the password");
- bool looppass=true;
-while(looppass){
-
-  customKey = customKeypad.getKey();
-  if (customKey){
-    Data[data_count] = customKey; 
-    lcd.setCursor(data_count,1); 
-    lcd.print(Data[data_count]);
-    Serial.println(Data[data_count]);
-    data_count++; 
-    }
-
-  if(data_count == Password_Length-1){
-    //lcd.clear();
-
-    if(!strcmp(Data, Master)){
-      lcd.print("Correct");
-      Serial.println("correct");
-      //digitalWrite(signalPin, HIGH); 
-      //delay(10000);
-      clearData();  
-      return true;
-      }
-    else{
-      lcd.print("Incorrect");
-      Serial.println("incorecct");
-     // digitalWrite(signalPin, LOW);
-     // delay(10000);
-     // clearData();  
-      }
-    
-    lcd.clear();
-    clearData();  
-  }
+  lcd.print("LDR:");
+  lcd.print(LDRDetected);
+  lcd.setCursor(0,1);
+  //lcd.print("        ");
+  lcd.print("Gas Int:");
+  lcd.print(analogSensor);
+  lcd.print("        ");
+  Serial.print("Default Gas reading = ");
+  Serial.println(analogSensor);
+{
+  forceReading = analogRead(forcePin);
+  Serial.print("Default Load reading = ");
+  Serial.println(forceReading);
+  solenoidThres = map(forceReading, 0, 1023, 0, 255);
+  analogWrite(solenoidPin, solenoidThres);
+  delay(0);  
 }
-}
+// Online Ports
+//  Serial.print("Online Ports: comA0, comA1, comA2, comA3, comD4, comD10, comD11, ");
 
-void clearData(){
-  while(data_count !=0){
-    Data[data_count--] = 0; 
+  if (analogSensor<sensorThres)
+  {  
+  digitalWrite(solenoidPin, LOW);
+  delay(sensorThres);
   }
-  return;
+  else
+  {
+  Serial.print("Gas Detected, ");
+  digitalWrite(solenoidPin, HIGH);
+  delay(sensorThres);
+ }
+ 
+  if (LDRDetected < 100)
+   {
+  digitalWrite(solenoidPin, LOW);
+  
+// delay(0); //Wait 0 MS(debbuging)
+  }
+  else
+  if (LDRDetected > 100)
+  { 
+  digitalWrite(solenoidPin, HIGH);
+  delay(LDRDetected);
+  delay(0); //Wait 0 MS
+  }
 }
