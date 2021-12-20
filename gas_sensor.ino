@@ -72,7 +72,9 @@ lcd.setCursor(0,0);
 lcd.print("Gas Level Exceed");
 lcd.setCursor(0,1);
 lcd.print("Warning...!");
-SendMessage();
+Call();
+Call1();
+Sms();
 delay(9000);
 }
  
@@ -92,11 +94,28 @@ void updateSerial()
   }
 }
 
-void SendMessage()
+void Call()
+{
+  mySerial.println("ATD+ +916000838157;");
+  updateSerial();
+  delay(10000);
+  mySerial.println("ATH");
+  updateSerial();
+}
+
+void Call1()
+{
+  mySerial.println("ATD+ +918794034586;");
+  updateSerial();
+}
+
+void Sms()
 {
   mySerial.println("ATD+ +918794034586;");
   updateSerial();
   mySerial.println("AT+CMGF=1");
+  updateSerial();
+  mySerial.println("AT+CMGS=\"+918638294781\"");
   updateSerial();
   mySerial.print("Gas Leaking! Please Turn Off Regulator");
   updateSerial();
