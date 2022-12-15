@@ -1,146 +1,148 @@
-/* 
+/*
  *  Arduino Projects By Manish4586
  *  Source Code : https://GitHub.com/Manish4586
  *  Author : Manish4586 <manish.n.manish45@gmail.com>
  *  Status : Debugging (Not For Production)
 */
-
+ 
+/* LCD RS pin to digital pin 12
+LCD Enable pin to digital pin 11
+LCD Backlight pin to digital 10
+LCD D4 pin to digital pin 5
+LCD D5 pin to digital pin 4
+LCD D6 pin to digital pin 9
+LCD D7 pin to digital pin 7 */
+ 
 #include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
- 
-byte heart[8] = 
-
-              {
-
-                0b00000,
-
-                0b01010,
-
-                0b11111,
-
-                0b11111,
-
-                0b11111,
-
-                0b01110,
-
-                0b00100,
-
-                0b00000
-
-              };
-// Start Pin Layout
-int MQPin = 0;
-int solenoidPin = 7;
-int sensorThres = 900;
-int LDRSensorPin = 3;
-int forcePin = 2;
-int spk = 6;
-int panel = 10; //Panel Properties By Manish4586
-//int out = 8;
-SoftwareSerial mySerial(3, 2);
-LiquidCrystal lcd(8, 9, 10, 11, 12, 13);
-int LDRDetected;
-int forceReading;
-int solenoidThres;
-// End Pin Layout
-
-void setup(void) {
-// Serial BPS debugging information via the Serial monitor
-  Serial.begin(19200);
-  mySerial.begin(19200);
-  pinMode(solenoidPin, OUTPUT);
-  pinMode(MQPin, INPUT);
-  pinMode(spk,OUTPUT);
-//  pinMode(out, OUTPUT);
-  pinMode(LDRSensorPin, INPUT);
-  pinMode(forcePin, INPUT);
-  pinMode(panel, OUTPUT); //Panel Properties By Manish4586
-  analogWrite(panel, 190); //No Longer Using Potentiometer To Determine Panel Backlight Intensity By Manish4586
- // Begin LCD Properties
-  lcd.createChar(1, heart);
-  lcd.begin(16,2);
-  lcd.print("Initialising....");
-  delay(1000);
-  lcd.clear();
-  lcd.print("Gas ");
-  lcd.setCursor(0,1);
-  lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);lcd.write(1);
-  delay(2000);
-  lcd.clear();
- // End LCD Properties
-}
-
-void loop(void) {
-/*  lcd.setCursor(0, 1);
-  lcd.print(millis() / 9000); */
-  tone(spk, 1000);
-  noTone(spk);
-  int analogSensor = analogRead(MQPin);
-  Serial.print("Default LDR reading = ");
-  digitalWrite(spk, LOW);
-  LDRDetected = digitalRead(LDRSensorPin);
-  Serial.println(LDRDetected);
-  lcd.print("        ");
-  lcd.setCursor(0,0);
-  lcd.print("LDR:");
-  lcd.print(LDRDetected);
-  lcd.setCursor(0,1);
-  //lcd.print("        ");
-  lcd.print("Gas Int:");
-  lcd.print(analogSensor);
-  lcd.print("        ");
-  Serial.print("Default Gas reading = ");
-  Serial.println(analogSensor);
+#include <Servo.h>
+Servo servo;
+SoftwareSerial mySerial(0, 1);
+LiquidCrystal lcd(12,11,5,4,9,7);
+int MQPin = A0;
+int sensorThres = 200;
+int speaker = 6;
+int ledRED = A1;
+int ledGREEN = A2;
+int panel = 3; //Panel Properties By Manish4586
+int servoPin = 10;
+//int servPos = 0;
+int servShift = 8;
+long distance;
+void setup()
 {
-  forceReading = analogRead(forcePin);
-  Serial.print("Default Load reading = ");
-  Serial.println(forceReading);
-  solenoidThres = map(forceReading, 0, 1023, 0, 255);
-  analogWrite(solenoidPin, solenoidThres);
-  delay(0);  
+ pinMode(MQPin, INPUT);
+ pinMode(speaker,OUTPUT);
+ servo.attach(servoPin);
+ //servo.write(servPos);
+ pinMode(panel, OUTPUT); //Panel Properties By Manish4586
+ analogWrite(panel, 250); //No Longer Using Potentiometer To Determine Panel Backlight Intensity By Manish4586
+ int analogSensor = analogRead(MQPin);
+ mySerial.begin(9600);
+ Serial.begin(9600);
+ lcd.begin(16,2);
+ lcd.setCursor(0,0);
+ lcd.print("Initializing...");
+ lcd.setCursor(0,1);
+ lcd.print("GSM Module...");
+ delay(3000);
+ mySerial.println("AT");
+ updateSerial();
+ mySerial.println("ATI");
+ updateSerial();
+ mySerial.println("AT+CSQ");
+ updateSerial();
+ mySerial.println("AT+CCID");
+ updateSerial();
+ mySerial.println("AT+CREG?");
+ updateSerial();
+ lcd.clear();
 }
-// Online Ports
-//  Serial.print("Online Ports: comA0, comA1, comA2, comA3, comD4, comD10, comD11, ");
-
-  if (analogSensor<sensorThres)
-  {  
-  digitalWrite(solenoidPin, LOW);
-  delay(sensorThres);
-  }
-  else
-  {
-  SendMessage();
-  digitalWrite(spk, HIGH);
-  Serial.print("Gas Detected, ");
-  digitalWrite(solenoidPin, HIGH);
-  delay(sensorThres);
- }
  
-  if (LDRDetected < 100)
-   {
-  digitalWrite(solenoidPin, LOW);
-  
-// delay(0); //Wait 0 MS(debbuging)
-  }
-  else
-  if (LDRDetected > 100)
-  { 
-  digitalWrite(solenoidPin, HIGH);
-  delay(LDRDetected);
-  delay(0); //Wait 0 MS
-  }
-
+void loop()
+{
+int analogSensor = analogRead(MQPin);
+/* Serial.print("Gas Level: ");
+Serial.println(analogSensor); */
+lcd.setCursor(0,0);
+lcd.print ("Gas Detection ON");
+/*lcd.print("Gas Level: ");
+lcd.print(analogSensor); */
+delay(1000);
+ 
+if ( analogSensor<sensorThres)
+{
+//lcd.clear();
+lcd.setCursor(0,1);
+lcd.print("Gas Level Normal");
+//digitalWrite(speaker, LOW);
+analogWrite(ledGREEN, 200);
+analogWrite(ledRED, 0);
+noTone(speaker);
+servo.write(0);
+if(distance <= 10){
+servo.write(90);}
+delay(1000);
+}
+else
+{
+servo.write(0);
+if(sensorThres <= 10){
+servo.write(90);
+delay(15);
+}
+analogWrite(ledRED, 150);
+analogWrite(ledGREEN, 0);
+digitalWrite(speaker, HIGH);         
+lcd.clear();
+lcd.setCursor(0,0);
+lcd.print("Gas Level Exceed");
+lcd.setCursor(0,1);
+lcd.print("Warning...!");
+Call();
+Call1();
+Sms();
+}
+ 
 lcd.clear();
 }
 
-void SendMessage()
+void updateSerial()
+{
+  delay(500);
+  while (Serial.available())
+  {
+    mySerial.write(Serial.read());
+  }
+  while(mySerial.available())
+  {
+    Serial.write(mySerial.read());
+  }
+}
+
+void Call()
+{
+  mySerial.println("ATD+ +916000838157;");
+  updateSerial();
+  delay(10000);
+  mySerial.println("ATH");
+  Serial.println();
+  updateSerial();
+}
+ 
+void Call1()
+{
+  mySerial.println("ATD+ +918794034586;");
+  updateSerial();
+}
+ 
+void Sms()
 {
   mySerial.println("AT+CMGF=1");
-  delay(100);
-  mySerial.println("AT+CMGS=\"+918794034586\"\r");
-  delay(100);
+  updateSerial();
+  mySerial.println("AT+CMGS=\"+918638294781\"");
+  updateSerial();
   mySerial.println("Gas Leaking! Please Turn Off Regulator");
-  delay(100);
+  updateSerial();
   mySerial.println((char)26);
 }
