@@ -26,15 +26,14 @@ int ledRED = A1;
 int ledGREEN = A2;
 int panel = 3; //Panel Properties By Manish4586
 int servoPin = 10;
-//int servPos = 0;
-int servShift = 8;
-long distance;
+int servPos = 90;
+int servShift = 0;
 void setup()
 {
  pinMode(MQPin, INPUT);
  pinMode(speaker,OUTPUT);
  servo.attach(servoPin);
- //servo.write(servPos);
+ servo.write(servPos);
  pinMode(panel, OUTPUT); //Panel Properties By Manish4586
  analogWrite(panel, 250); //No Longer Using Potentiometer To Determine Panel Backlight Intensity By Manish4586
  int analogSensor = analogRead(MQPin);
@@ -69,8 +68,8 @@ lcd.print ("Gas Detection ON");
 /*lcd.print("Gas Level: ");
 lcd.print(analogSensor); */
 delay(1000);
- 
-if ( analogSensor<sensorThres)
+
+if (analogSensor<sensorThres)
 {
 //lcd.clear();
 lcd.setCursor(0,1);
@@ -79,18 +78,12 @@ lcd.print("Gas Level Normal");
 analogWrite(ledGREEN, 200);
 analogWrite(ledRED, 0);
 noTone(speaker);
-servo.write(0);
-if(distance <= 10){
-servo.write(90);}
+servo.write(servPos);
 delay(1000);
 }
+
 else
 {
-servo.write(0);
-if(sensorThres <= 10){
-servo.write(90);
-delay(15);
-}
 analogWrite(ledRED, 150);
 analogWrite(ledGREEN, 0);
 digitalWrite(speaker, HIGH);         
@@ -99,12 +92,29 @@ lcd.setCursor(0,0);
 lcd.print("Gas Level Exceed");
 lcd.setCursor(0,1);
 lcd.print("Warning...!");
+if (servShift == 0){
+servo.write(180);
+delay(750);
+servo.write(servPos);
+delay(5000);
+servo.write(0);
+delay(1000);
+servo.write(servPos);
+//delay(500);
+servShift = 1;  
+}
+else
+{
+servo.write(servPos);
+}
+
 Call();
 Call1();
 Sms();
+
 }
- 
 lcd.clear();
+servShift = 0;
 }
 
 void updateSerial()
@@ -122,7 +132,7 @@ void updateSerial()
 
 void Call()
 {
-  mySerial.println("ATD+ +916000838157;");
+  mySerial.println("ATD+ +91;");
   updateSerial();
   delay(10000);
   mySerial.println("ATH");
@@ -132,7 +142,7 @@ void Call()
  
 void Call1()
 {
-  mySerial.println("ATD+ +918794034586;");
+  mySerial.println("ATD+ +91;");
   updateSerial();
 }
  
@@ -140,7 +150,7 @@ void Sms()
 {
   mySerial.println("AT+CMGF=1");
   updateSerial();
-  mySerial.println("AT+CMGS=\"+918638294781\"");
+  mySerial.println("AT+CMGS=\"+91\"");
   updateSerial();
   mySerial.println("Gas Leaking! Please Turn Off Regulator");
   updateSerial();
