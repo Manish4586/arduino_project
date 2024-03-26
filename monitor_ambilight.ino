@@ -1,8 +1,8 @@
 #include "FastLED.h"
 #define NUM_LEDS 90
-#define DATA_PIN 3
+#define DATA_PIN 6
 
-#define serialRate 115200
+#define serialRate 500000
 
 uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 
@@ -12,20 +12,20 @@ void setup() {
 
   FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
 
-  LEDS.showColor(CRGB(255, 0, 0));
+  FastLED.showColor(CRGB::Red);
   delay(500);
-  LEDS.showColor(CRGB(0, 255, 0));
+  FastLED.showColor(CRGB::Green);
   delay(500);
-  LEDS.showColor(CRGB(0, 0, 255));
+  FastLED.showColor(CRGB::Blue);
   delay(500);
-  LEDS.showColor(CRGB(255, 255, 255));
+  FastLED.showColor(CRGB::White);
   delay(500);
-  LEDS.showColor(CRGB(0, 0, 0));
-  
+  FastLED.showColor(CRGB::Black);
+
   Serial.begin(serialRate);
 }
 
-void loop() { 
+void loop() {
   for(i = 0; i < sizeof prefix; ++i) {
     waitLoop: while (!Serial.available()) ;;
     if(prefix[i] == Serial.read()) continue;
